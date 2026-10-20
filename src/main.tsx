@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
@@ -33,6 +33,68 @@ async function api<T>(path: string, options?: RequestInit): Promise<T> {
 
 function ArrowIcon() {
   return <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M3.5 9h10m0 0-4-4m4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+}
+
+type DropdownOption = { id: string; label: string; detail: string };
+
+function Dropdown({ id, label, value, options, disabled, placeholder, onChange }: {
+  id: string;
+  label: string;
+  value: string;
+  options: DropdownOption[];
+  disabled: boolean;
+  placeholder: string;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const selected = options.find(option => option.id === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    rootRef.current?.querySelector<HTMLButtonElement>('[role="option"][aria-selected="true"]')?.focus();
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [open]);
+
+  function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape' && open) {
+      event.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+      return;
+    }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    if (!open) { setOpen(true); return; }
+    const items = Array.from(rootRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') || []);
+    if (!items.length) return;
+    const current = items.indexOf(document.activeElement as HTMLButtonElement);
+    const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+      : event.key === 'ArrowDown' ? (current + 1) % items.length : (current - 1 + items.length) % items.length;
+    items[next].focus();
+  }
+
+  return <div className={`dropdown${open ? ' is-open' : ''}`} ref={rootRef} onKeyDown={handleKeyDown}
+    onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node)) setOpen(false); }}>
+    <button id={id} ref={triggerRef} className="dropdown-trigger" type="button" disabled={disabled}
+      aria-labelledby={`${id}-label ${id}`} aria-haspopup="listbox" aria-expanded={open} aria-controls={`${id}-options`}
+      onClick={() => setOpen(current => !current)}>
+      <span className="dropdown-value">{selected?.label || placeholder}</span>
+      <span className="dropdown-chevron" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="m5 7.5 5 5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg></span>
+    </button>
+    {open && <div id={`${id}-options`} className="dropdown-menu" role="listbox" aria-label={label}>
+      {options.map(option => <button key={option.id} type="button" role="option" aria-selected={option.id === value}
+        className="dropdown-option" onClick={() => { onChange(option.id); setOpen(false); triggerRef.current?.focus(); }}>
+        <span><strong>{option.label}</strong><small>{option.detail}</small></span>
+        {option.id === value && <span className="dropdown-check" aria-hidden="true">✓</span>}
+      </button>)}
+    </div>}
+  </div>;
 }
 
 function App() {
@@ -105,8 +167,8 @@ function App() {
               <div className="card-label"><span className="step-number">1</span> Параметры услуги</div>
               {catalogError ? <div className="notice error" role="alert">{catalogError} <button type="button" onClick={() => { setCatalogError(''); api<Catalog>('/api/catalog').then(setCatalog).catch(error => setCatalogError(error.message)); }}>Повторить</button></div> : null}
               <div className="field-grid">
-                <label className="field"><span>Ваш город</span><div className="select-wrap"><select value={cityId} disabled={!catalog} onChange={event => { setCityId(event.target.value); setQuote(null); }}><option value="" disabled>Выберите город</option>{catalog?.cities.map(city => <option value={city.id} key={city.id}>{city.name}</option>)}</select></div><small>Выезд мастера: {selectedCity ? money(selectedCity.visitFeeRub) : '—'}</small></label>
-                <label className="field"><span>Тип услуги</span><div className="select-wrap"><select value={serviceId} disabled={!catalog} onChange={event => { setServiceId(event.target.value); setQuote(null); }}><option value="" disabled>Выберите услугу</option>{catalog?.services.map(service => <option value={service.id} key={service.id}>{service.name}</option>)}</select></div><small>{selectedService?.description || 'Загрузка услуг...'}</small></label>
+                <div className="field"><span id="city-label">Ваш город</span><Dropdown id="city" label="Ваш город" value={cityId} disabled={!catalog} placeholder="Выберите город" options={catalog?.cities.map(city => ({ id: city.id, label: city.name, detail: `Выезд ${money(city.visitFeeRub)}` })) || []} onChange={value => { setCityId(value); setQuote(null); }} /><small>Выезд мастера: {selectedCity ? money(selectedCity.visitFeeRub) : '—'}</small></div>
+                <div className="field"><span id="service-label">Тип услуги</span><Dropdown id="service" label="Тип услуги" value={serviceId} disabled={!catalog} placeholder="Выберите услугу" options={catalog?.services.map(service => ({ id: service.id, label: service.name, detail: `От ${money(service.basePriceRub)} · ${service.durationMin} мин` })) || []} onChange={value => { setServiceId(value); setQuote(null); }} /><small>{selectedService?.description || 'Загрузка услуг...'}</small></div>
               </div>
               <div className="separator" />
               <div className="qty-row"><div><label htmlFor="quantity">Количество устройств</label><p>От одного до пяти за один выезд</p></div><div className="stepper"><button type="button" aria-label="Уменьшить количество" disabled={quantity <= 1} onClick={() => { setQuantity(quantity - 1); setQuote(null); }}>−</button><input id="quantity" type="number" min="1" max="5" value={quantity} onChange={event => { const value = Number(event.target.value); if (Number.isInteger(value) && value >= 1 && value <= 5) { setQuantity(value); setQuote(null); } }} /><button type="button" aria-label="Увеличить количество" disabled={quantity >= 5} onClick={() => { setQuantity(quantity + 1); setQuote(null); }}>+</button></div></div>
