@@ -1,6 +1,10 @@
 # Мастер рядом — демонстрационный калькулятор услуг
 
-Небольшой full-stack проект для портфолио: React + TypeScript, Node.js API и SQLite. Посетитель выбирает город, услугу, количество устройств и срочность; сервер возвращает подробную смету. Это учебный пример, цены и услуги вымышлены, реальные заказы сайт не принимает.
+Небольшой full-stack проект для портфолио: React + TypeScript, API на Node.js локально или Cloudflare Workers в облаке, SQLite. Посетитель выбирает город, услугу, количество устройств и срочность; сервер возвращает подробную смету. Это учебный пример, цены и услуги вымышлены, реальные заказы сайт не принимает.
+
+[Открыть работающий калькулятор](https://pepelaz1-service-price-calculator.service-price-calculator.workers.dev/) · [Смотреть скриншот](screenshots/cloudflare-live.jpg)
+
+![Калькулятор и смета на опубликованном сайте](screenshots/cloudflare-live.jpg)
 
 ## Что внутри
 
@@ -49,11 +53,11 @@ npm run dev
 
 Не храните секреты в репозитории. В текущем демо секретов и персональных данных нет. Бесплатные квоты Yandex Cloud не являются жёстким лимитом расходов: после их исчерпания возможна тарификация. Для платежного аккаунта без карты Yandex Cloud требует первоначальное пополнение баланса.
 
-## Временное размещение в Cloudflare
+## Размещение в Cloudflare
 
 Вариант для Cloudflare Workers использует тот же React-фронтенд и SQLite-совместимую базу D1. `cloudflare/worker.mjs` обслуживает `/api/*`, а статические файлы из `dist/` отдаются через Workers Static Assets. Начальная структура и демонстрационные данные находятся в `migrations/0001_demo_catalog.sql`.
 
-Перед первым размещением создайте базу `service-price-calculator` командой `npx wrangler d1 create service-price-calculator` и замените нулевой `database_id` в `wrangler.jsonc` на выданный идентификатор. Затем:
+База `service-price-calculator` создана в аккаунте Cloudflare владельца репозитория; её идентификатор указан в `wrangler.jsonc`. При развёртывании в другом аккаунте создайте свою базу командой `npx wrangler d1 create service-price-calculator` и замените `database_id` в конфигурации. Затем:
 
 ```powershell
 npx wrangler d1 migrations apply service-price-calculator --remote
