@@ -190,7 +190,7 @@ function App() {
 
         <section className="how-section" id="how-it-works"><div className="section-heading"><div><span className="section-kicker">02 / КАК ЭТО РАБОТАЕТ</span><h2>Всё прозрачно</h2></div></div><div className="feature-grid"><article><span className="feature-index">01</span><div className="feature-icon">⌖</div><h3>Выбираете город</h3><p>У каждого города свой коэффициент и фиксированная стоимость выезда.</p></article><article><span className="feature-index">02</span><div className="feature-icon">▦</div><h3>Указываете услугу</h3><p>Тарифы и примерное время работ хранятся в базе SQLite на сервере.</p></article><article><span className="feature-index">03</span><div className="feature-icon">↗</div><h3>Получаете смету</h3><p>Сервер рассчитывает работы, выезд и доплату за срочность одной суммой.</p></article></div></section>
       </main>
-      <footer id="about"><div><a className="brand footer-brand" href="#top"><span className="brand-mark">м<span>↗</span></span><span>мастер<span className="brand-dot">.</span>рядом</span></a><p>Демонстрационный проект. Реальные заказы не принимаются.</p></div><div className="footer-right">React · Node.js · SQLite <span>© 2026</span></div></footer>
+      <footer id="about"><div><a className="brand footer-brand" href="#top"><span className="brand-mark">м<span>↗</span></span><span>мастер<span className="brand-dot">.</span>рядом</span></a><p>Демонстрационный проект. Реальные заказы не принимаются.</p></div><div className="footer-right">React · API · SQLite <span>© 2026</span></div></footer>
     </div>
   </>;
 }
