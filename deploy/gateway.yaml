@@ -1,0 +1,61 @@
+# Replace BUCKET_NAME and FUNCTION_ID before creating the API Gateway.
+# The bucket must allow public read access, or add a service account to
+# each object_storage integration.
+openapi: 3.0.0
+info:
+  title: Service Price Calculator Demo
+  version: 1.0.0
+paths:
+  /:
+    get:
+      summary: React application
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: BUCKET_NAME
+        object: index.html
+  /assets/{file}:
+    get:
+      summary: Static asset
+      parameters:
+        - name: file
+          in: path
+          required: true
+          schema:
+            type: string
+      x-yc-apigateway-integration:
+        type: object_storage
+        bucket: BUCKET_NAME
+        object: 'assets/{file}'
+  /api/health:
+    get:
+      summary: Health check
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: FUNCTION_ID
+        payload_format_version: '1.0'
+  /api/catalog:
+    get:
+      summary: List cities and services
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: FUNCTION_ID
+        payload_format_version: '1.0'
+  /api/quote:
+    post:
+      summary: Calculate a quote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cityId, serviceId, quantity, urgent]
+              properties:
+                cityId: { type: string }
+                serviceId: { type: string }
+                quantity: { type: integer, minimum: 1, maximum: 5 }
+                urgent: { type: boolean }
+      x-yc-apigateway-integration:
+        type: cloud_functions
+        function_id: FUNCTION_ID
+        payload_format_version: '1.0'
