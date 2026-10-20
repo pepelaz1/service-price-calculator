@@ -9,6 +9,9 @@ paths:
   /:
     get:
       summary: React application
+      responses:
+        '200':
+          description: HTML application
       x-yc-apigateway-integration:
         type: object_storage
         bucket: BUCKET_NAME
@@ -22,6 +25,9 @@ paths:
           required: true
           schema:
             type: string
+      responses:
+        '200':
+          description: Static asset
       x-yc-apigateway-integration:
         type: object_storage
         bucket: BUCKET_NAME
@@ -29,6 +35,9 @@ paths:
   /api/health:
     get:
       summary: Health check
+      responses:
+        '200':
+          description: API is ready
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: FUNCTION_ID
@@ -36,6 +45,9 @@ paths:
   /api/catalog:
     get:
       summary: List cities and services
+      responses:
+        '200':
+          description: Available cities and services
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: FUNCTION_ID
@@ -55,6 +67,13 @@ paths:
                 serviceId: { type: string }
                 quantity: { type: integer, minimum: 1, maximum: 5 }
                 urgent: { type: boolean }
+      responses:
+        '200':
+          description: Calculated quote
+        '400':
+          description: Invalid input
+        '404':
+          description: City or service not found
       x-yc-apigateway-integration:
         type: cloud_functions
         function_id: FUNCTION_ID
